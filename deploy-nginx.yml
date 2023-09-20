@@ -1,0 +1,38 @@
+---
+- name: Deploy nginx! 
+  hosts: virtualbox
+  become: true
+  gather_facts: false
+  tasks:
+
+    - name: Gather packages facts
+      package_facts:
+        manager: auto
+
+    - name: Install nginx!
+      yum:
+        name: nginx
+        state: present
+      when: "'nginx' not in ansible_facts.packages"
+      register: nginx_install
+
+    - name: print nginx_install vars
+      ansible.builtin.debug:
+        var: nginx_install
+
+    - name: Running nginx service
+      service:
+        name: nginx
+        state: started
+      when: nginx_install.changed
+
+    - name: Remove nginx! 
+      yum:
+        name: nginx
+        state: absent
+      when: "'nginx' in ansible_facts.packages"
+      register: nginx_remove
+
+    - name: print nginx_install vars
+      ansible.builtin.debug:
+        var: nginx_remove
